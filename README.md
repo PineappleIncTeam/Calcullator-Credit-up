@@ -1,3 +1,8 @@
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpHeaders;
 import java.util.Scanner;
 
 public class CreditCalculator {
@@ -13,20 +18,37 @@ public class CreditCalculator {
         System.out.print("Введите срок кредита (в месяцах): ");
         int loanTermInMonths = scanner.nextInt();
 
-        double monthlyInterestRate = annualInterestRate / 12 / 100;
-        double monthlyPayment = calculateMonthlyPayment(loanAmount, monthlyInterestRate, loanTermInMonths);
+        // Формирование запроса к REST API для расчета кредита
+        String apiUrl = "https://api.example.com/credit-calculator";
+        String requestBody = String.format("{\"loanAmount\": %.2f, \"annualInterestRate\": %.2f, \"loanTermInMonths\": %d}",
+                loanAmount, annualInterestRate, loanTermInMonths);
 
-        System.out.println("Ежемесячный платеж: " + monthlyPayment);
-        System.out.println("Общая сумма выплат: " + (monthlyPayment * loanTermInMonths));
-        System.out.println("Общая сумма переплаты: " + ((monthlyPayment * loanTermInMonths) - loanAmount));
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(apiUrl))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
+
+        try {
+            // Отправка запроса и получение ответа от REST API
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            // Обработка ответа
+            int statusCode = response.statusCode();
+            if (statusCode == 200) {
+                String responseBody = response.body();
+                System.out.println("Ответ от сервера: " + responseBody);
+                // Дополнительная обработка ответа и вывод результатов
+            } else {
+                System.out.println("Ошибка при отправке запроса. Код ошибки: " + statusCode);
+            }
+        } catch (Exception e) {
+            System.out.println("Ошибка при отправке запроса: " + e.getMessage());
+        }
 
         scanner.close();
     }
-
-    public static double calculateMonthlyPayment(double loanAmount, double monthlyInterestRate, int loanTermInMonths) {
-        double monthlyPayment;
-        monthlyPayment = (loanAmount * monthlyInterestRate) / (1 - Math.pow(1 + monthlyInterestRate, -loanTermInMonths));
-        return monthlyPayment;
-    }
 }
+
 
