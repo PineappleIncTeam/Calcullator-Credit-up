@@ -1,0 +1,42 @@
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+public class CurrencyConverter {
+    private static final String API_KEY = "YOUR_API_KEY";
+    private static final String BASE_URL = "https://api.example.com";
+    
+    public static void main(String[] args) {
+        double amount = 100; // Сумма для конвертации
+        String fromCurrency = "USD"; // Исходная валюта
+        String toCurrency = "RUB"; // Целевая валюта
+        
+        double convertedAmount = convertCurrency(amount, fromCurrency, toCurrency);
+        System.out.println(amount + " " + fromCurrency + " = " + convertedAmount + " " + toCurrency);
+    }
+    
+    public static double convertCurrency(double amount, String fromCurrency, String toCurrency) {
+        try {
+            // Формирование URL-адреса для запроса конвертации валюты
+            URL url = new URL(BASE_URL + "/convert?api_key=" + API_KEY + "&from=" + fromCurrency + "&to=" + toCurrency + "&amount=" + amount);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            
+            // Получение ответа от сервера
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String response = reader.readLine();
+            reader.close();
+            
+            // Обработка ответа и извлечение сконвертированной суммы
+            double convertedAmount = Double.parseDouble(response);
+            
+            return convertedAmount;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return 0.0;
+        }
+    }
+}
